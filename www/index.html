@@ -15,7 +15,7 @@
         var db = new Dexie("dbDropbox");
 
         db.version(11).stores({
-            film: '&peringkat,judul,tahun,rating,review'
+            film: '&peringkat,judul,tahun,rating,rewiew'
         });
 
         db.open();
@@ -76,7 +76,7 @@ function getAll() {
             }
 
             function tambahData(row) {
-                return db.film.put({peringkat: row.peringkat, judul: row.judul, tahun: row.tahun, rating: row.rating, review: row.review});
+                return db.film.put({peringkat: row.peringkat, judul: row.judul, tahun: row.tahun, rating: row.rating, rewiew: row.rewiew});
             }
 
             function refreshView() {
@@ -102,7 +102,7 @@ function getAll() {
                 + row.judul + '</td><td>'
                 + row.tahun + '</td><td>'
                 + row.rating + '</td><td>'
-                + row.review + '</td></tr>';
+                + row.rewiew + '</td></tr>';
                 //return '<li><button id="'+row._id+'">delete</button>'+row.text+'</li>';
             }
 
@@ -209,7 +209,7 @@ function getAll() {
                 });
 
                 $('#btnAdd').on('click', function () {
-//                    var row = {peringkat: 9, judul: "ngelaba", tahun: 2008, rating: "B", review: 88};
+//                    var row = {peringkat: 9, judul: "ngelaba", tahun: 2008, rating: "B", rewiew: 88};
 //                    tambahData(row);
 alert("coming soon");
 console.log("Berhasil tambah data");

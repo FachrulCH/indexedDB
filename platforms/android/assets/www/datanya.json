@@ -1,0 +1,66 @@
+[
+    {
+        "peringkat": "1",
+        "judul": "The Raid 2 : Berandal",
+        "tahun": "2014",
+        "rating": "Dewasa",
+        "rewiews": "100"
+    },
+    {
+        "peringkat": "2",
+        "judul": "The Raid : Redemption",
+        "tahun": "2010",
+        "rating": "Dewasa",
+        "rewiews": "99"
+    },
+    {
+        "peringkat": "3",
+        "judul": "Java Heat",
+        "tahun": "2013",
+        "rating": "Dewasa",
+        "rewiews": "60"
+    },
+        {
+        "peringkat": "4",
+        "judul": "V/H/S/2",
+        "tahun": "2014",
+        "rating": "Dewasa",
+        "rewiews": "44"
+    },
+    {
+        "peringkat": "5",
+        "judul": "Merantau",
+        "tahun": "2009",
+        "rating": "Dewasa",
+        "rewiews": "100"
+    },
+    {
+        "peringkat": "6",
+        "judul": "Nagabonar Jadi 2",
+        "tahun": "2007",
+        "rating": "Remaja",
+        "rewiews": "78"
+    },
+        {
+        "peringkat": "7",
+        "judul": "9 Naga",
+        "tahun": "2006",
+        "rating": "Dewasa",
+        "rewiews": "89"
+    },
+    {
+        "peringkat": "8",
+        "judul": "Rumah Dara (Macabre)",
+        "tahun": "2010",
+        "rating": "Dewasa",
+        "rewiews": "99"
+    },
+    {
+        "peringkat": "10",
+        "judul": "Killers",
+        "tahun": "2013",
+        "rating": "Dewasa",
+        "rewiews": "60"
+    }
+    
+]
