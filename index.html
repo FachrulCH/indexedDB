@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sync Dropbox</title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">
+    <script src="js/jquery.js"></script>
+    <script src="js/jquery.mobile-1.4.5.min.js"></script>
+    <script src="js/addon/Dexie.js"></script>
+    <script>
+
+
+        var db = new Dexie("dbDropbox");
+
+        db.version(11).stores({
+            film: '&peringkat,judul,tahun,rating,review'
+        });
+
+        db.open();
+        console.log("db Open");
+        db.on('ready', function () {
+                // on('ready') event will fire when database is open but 
+                // before any other queued operations start executing.
+                // By returning a Promise from this event,
+                // the framework will wait until promise completes before
+                // resuming any queued database operations.
+                // Let's start by using the count() method to detect if 
+                // database has already been populated.
+                return db.film.count(function (count) {
+                    if (count > 0) {
+                        console.log("Database ada");
+                    } else {
+                        console.log("Database kosong belum ada record");
+                        var r = confirm("Database kosong belum ada record, Apakah akan mendownload dari database");
+                        if (r == true) {
+                            updateDb();
+                        } else {
+                            alert("Data tidak diperbaharui");
+                        }
+                    }
+                });
+            });
+
+function getAll() {
+    var selectAll = [];
+    var itu;
+                // Following operation will be queued until we're finished populating data:
+                var A = db.film.each(function (obj) {
+                    // When we come here, data is fully populated and we can log all objects.
+                    var row = JSON.stringify(obj);
+                    //console.log("Found object: " + row);
+                    selectAll.push(row);
+                }).then(function () {
+                    //console.log("Finished. total semuanya:"+selectAll.length);
+                    itu = selectAll;
+                    console.log("itu:" + itu);
+                }).catch(function (error) {
+                    // In our each() callback above fails, OR db.open() fails due to any reason,
+                    // including our ajax call failed, this operation will fail and we will get
+                    // the error here!
+                    console.error(error.stack || error);
+                    // Note that we could also have catched it on db.open() but in this sample,
+                    // we show it here.
+                });
+                console.log("objA" + A);
+                console.log("selectAll:" + selectAll);
+                return selectAll;
+            }
+
+            function hapusDb() {
+                db.delete().then(function () {
+                    window.location.reload()
+                });
+            }
+
+            function tambahData(row) {
+                return db.film.put({peringkat: row.peringkat, judul: row.judul, tahun: row.tahun, rating: row.rating, review: row.review});
+            }
+
+            function refreshView() {
+                //console.log(db.film.toArray());
+                return db.film.toArray()
+                .then(renderAllRows);
+            }
+
+            function renderAllRows(rows) {
+                //console.log(rows);
+                var html = '';
+                rows.forEach(function (row) {
+                    html += rowToHtml(row);
+                });
+                //ul.innerHTML = html;
+                //console.log("hasilnya:"+html);
+                $('#dataHasil').html(html).table("refresh").trigger("updatelayout");
+            }
+
+            function rowToHtml(row) {
+                return '<tr class="ui-screen-hidden"><th>'
+                + row.peringkat + '</th><td>'
+                + row.judul + '</td><td>'
+                + row.tahun + '</td><td>'
+                + row.rating + '</td><td>'
+                + row.review + '</td></tr>';
+                //return '<li><button id="'+row._id+'">delete</button>'+row.text+'</li>';
+            }
+
+            function updateDb() {
+
+                // We want framework to continue waiting, so we encapsulate the ajax call
+                // in a Dexie.Promise that we return here.
+                return new Dexie.Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: "http://temanbackpacker.com/sync/",
+                        dataType: "jsonp",
+                        crossDomain: true,
+                        beforeSend: function () {
+            // menampilkan loading spiner sebelum data dikirim
+            $.mobile.loading("show", {text: "Mohon tunggu", textVisible: true});
+        },
+        error: function (xhr, textStatus) {
+                            reject(textStatus); // Rejecting promise to make db.open() fail.
+                            alert("Error mengambil data dari internet");
+                        },
+                        success: function (data) {
+                            $.mobile.loading("hide");
+                            resolve(data); // Resolving Promise will launch then() below.
+                            console.log("data sukses" + data);
+                        }
+                    });
+                }).then(function (data) {
+                    console.log("Got ajax response. We'll now add the objects." + data[0]);
+                    // By returning the db.transaction() promise, framework will keep
+                    // waiting for this transaction to commit before resuming other
+                    // db-operations.
+                    return db.transaction('rw', db.film, function () {
+                        data.forEach(function (item) {
+                            console.log("Adding object: " + JSON.stringify(item));
+                            db.film.add(item);
+                        });
+                    });
+                }).then(function () {
+                    console.log("Transaction committed");
+                    window.location.reload();
+                });
+
+            }
+
+        </script>
+    </head>
+    <body>
+        <div data-role="page" data-content-theme="e">
+            <div data-role="header">
+                <h1>Sync Dropbox</h1>
+                <a href="#panelnya" data-icon="gear" class="ui-btn-right">Menu</a>
+            </div>
+            <div data-role="panel" id="panelnya" data-position="right" data-display="push">
+                <button id="btnDelete" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-left ui-icon-delete">Delete Database</button>
+                <button id="btnDwn" onclick="updateDb();" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-left ui-icon-cloud">Download Database</button>
+                <button id="btnAdd" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-left ui-icon-plus">Tambah</button>
+            </div><!-- /default panel -->
+            <div data-role="content">
+                <form class="ui-filterable">
+                    <input id="autocomplete-input" data-type="search" placeholder="Pencarian Film">
+                </form>
+                <!--                    <ul id="autocomplete" data-role="listview" data-inset="true" data-filter="true" data-input="#autocomplete-input"></ul>-->
+
+                <table data-role="table" id="movie-table" data-filter="true" data-filter-reveal="true" data-input="#autocomplete-input" class="ui-responsive ui-body-d ui-shadow table-stripe">
+                    <thead>
+                        <tr>
+                            <th data-priority="1">Rank</th>
+                            <th data-priority="persist">Movie Title</th>
+                            <th data-priority="2">Year</th>
+                            <th data-priority="3"><abbr title="Rotten Tomato Rating">Rating</abbr></th>
+                            <th data-priority="4">Reviews</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataHasil">
+                        <tr >
+                            <th>1</th>
+                            <td><a href="http://en.wikipedia.org/wiki/Citizen_Kane" data-rel="external">Citizen Kane</a></td>
+                            <td>1941</td>
+                            <td>100%</td>
+                            <td>74</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+        <script>
+            $(document).on("pagebeforecreate", function (event) {
+                console.log("Event: pagebeforecreate");
+                refreshView();
+            });
+
+            $(document).ready(function () {
+
+
+
+
+                //getAll();
+                console.log("ready");
+                $('#btnDelete').on('click', function () {
+                    hapusDb();
+                    alert("Deleteed");
+                });
+
+                $('#btnAdd').on('click', function () {
+//                    var row = {peringkat: 9, judul: "ngelaba", tahun: 2008, rating: "B", review: 88};
+//                    tambahData(row);
+alert("coming soon");
+console.log("Berhasil tambah data");
+});
+
+            });
+
+        </script>
+    </body>
+    </html>
